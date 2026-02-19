@@ -2,6 +2,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from Database.sql import Base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -18,6 +19,15 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', fullname='{self.fullname}', provider='{self.provider}')>"
+    
+class TokenTable(Base):
+    __tablename__ = "token"
+    user_id = Column(Integer)
+    access_toke = Column(String(450), primary_key=True)
+    refresh_toke = Column(String(450),nullable=False)
+    status = Column(Boolean)
+    created_date = Column(DateTime, default=datetime.utcnow)
+
     
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

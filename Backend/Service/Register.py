@@ -4,7 +4,7 @@ from datetime import timedelta,datetime,timezone
 
 from Database.sql import get_db
 from Schema.Auth import RegisterRequest, TokenResponse, LoginRequest
-from Models.register import User
+from Models.register import User, TokenTable
 from Utils.jwt_token import create_access_token, create_refresh_token
 import secrets
 import hashlib
@@ -53,7 +53,7 @@ def register_user(data: RegisterRequest,db: Session = Depends(get_db)):
 
     return "User registered successfully"
 
-@router.post("/login")
+@router.post("/login", response_model=TokenResponse)
 def login(data: LoginRequest, db:Session = Depends(get_db)):
     if not data.email or not data.password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email and password are required")
@@ -65,24 +65,15 @@ def login(data: LoginRequest, db:Session = Depends(get_db)):
     if not verify_password(data.password, user.hashpassword):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Password")
     
-    return "Login successfully"
+    access = create_access_token(user.id)
+    refresh = create_refresh_token(user.id)
 
-    
-
-
-
-        
-def save_refresh_token(db: Session, user_id: int, token:str):
-    expires_at = get_utc_now() + timedelta(days=7)
-    refresh = User.RefreshToken(token=token,user_id=user_id,expires_at=expires_at,is_revoked=False)
-
-    try:
-        db.add(refresh)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save refresh token")
-    
-
-
-    
+    token_db = TokenTable(user_id=user.id, access_toke=access, refresh_toke=refresh,status=True)
+    db.add(token_db)
+    db.commit()
+    db.refresh(token_db)
+    return {
+        "access_token": access,
+        "refresh_token": refresh,
+        "token_type": "bearer"
+    }

@@ -32,9 +32,17 @@ class UserResponse(BaseModel):
     provider: str = Field(..., description="Authentication provider (local/google)")
     is_active: bool = Field(..., description="User account status")
     created_at: datetime = Field(..., description="Account creation timestamp")
-
+    
     class Config:
         from_attributes = True  
+
+class TokenCreate(BaseModel):
+    user_id:str
+    access_token:str
+    refresh_token:str
+    status:bool
+    created_date:datetime
+
 
 class MessageResponse(BaseModel):
     """Generic message response."""
