@@ -11,6 +11,13 @@ SessionLocal = sessionmaker(autocommit=False,autoflush=False,bind=engine)
 
 Base = declarative_base()
 
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    expire_on_commit=False
+)
+
 def get_db():
     db = SessionLocal()
     try:
